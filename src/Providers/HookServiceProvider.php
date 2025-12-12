@@ -30,8 +30,8 @@ class HookServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        add_filter(ECOMMERCE_PRODUCT_DETAIL_EXTRA_HTML, function (?string $html): ?string {
-            return $html . $this->renderCustomFields(DisplayLocation::PRODUCT);
+        add_filter(ECOMMERCE_PRODUCT_DETAIL_EXTRA_HTML, function (?string $html, ?Product $product = null): ?string {
+            return $html . $this->renderCustomFields(DisplayLocation::PRODUCT, $product);
         }, 999, 2);
 
         add_filter('ecommerce_checkout_form_before_payment_form', function (?string $html): ?string {
@@ -234,12 +234,22 @@ class HookServiceProvider extends ServiceProvider
         }, 999, 2);
     }
 
-    protected function renderCustomFields(string $location): ?string
+    protected function renderCustomFields(string $location, ?Product $product = null): ?string
     {
-        $customFields = CustomField::query()
+        $query = CustomField::query()
             ->wherePublished()
-            ->where('display_location', $location)
-            ->get();
+            ->where('display_location', $location);
+
+        if ($location === DisplayLocation::PRODUCT && $product) {
+            $query->where(function ($q) use ($product) {
+                $q->doesntHave('products')
+                    ->orWhereHas('products', function ($qr) use ($product) {
+                        $qr->where('ec_products.id', $product->getKey());
+                    });
+            });
+        }
+
+        $customFields = $query->get();
 
         if ($customFields->isEmpty()) {
             return null;

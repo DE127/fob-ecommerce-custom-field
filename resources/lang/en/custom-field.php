@@ -32,6 +32,7 @@ return [
         'file' => 'File',
         'image' => 'Image',
     ],
+    'apply_to_products' => 'Show on selected products (leave empty for all products)',
     'file_accepted_types' => 'Accepted File Types',
     'file_accepted_types_helper' => 'Comma-separated list of file extensions (e.g., jpg,jpeg,png,pdf). Leave empty to allow all file types.',
     'file_max_size' => 'Maximum File Size (MB)',

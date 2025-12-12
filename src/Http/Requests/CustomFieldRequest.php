@@ -4,6 +4,7 @@ namespace FriendsOfBotble\EcommerceCustomField\Http\Requests;
 
 use Botble\Base\Enums\BaseStatusEnum;
 use Botble\Support\Http\Requests\Request;
+use Botble\Ecommerce\Models\Product;
 use FriendsOfBotble\EcommerceCustomField\Enums\CustomFieldType;
 use FriendsOfBotble\EcommerceCustomField\Enums\DisplayLocation;
 use Illuminate\Validation\Rule;
@@ -19,6 +20,13 @@ class CustomFieldRequest extends Request
             'type' => [Rule::in(CustomFieldType::values())],
             'display_location' => ['required', Rule::in(DisplayLocation::values())],
             'options' => Rule::when($this->input('type') === CustomFieldType::SELECT, ['required', 'array'], ['nullable']),
+            // Selecting products is only meaningful for display at product page; empty means all products
+            'product_ids' => Rule::when(
+                $this->input('display_location') === DisplayLocation::PRODUCT,
+                ['nullable', 'array'],
+                ['nullable']
+            ),
+            'product_ids.*' => ['integer', Rule::exists((new Product())->getTable(), 'id')],
             'file_accepted_types' => Rule::when(
                 in_array($this->input('type'), [CustomFieldType::FILE, CustomFieldType::IMAGE]),
                 ['nullable', 'string', 'max:255'],

@@ -9,6 +9,7 @@ class Plugin extends PluginOperationAbstract
 {
     public static function remove(): void
     {
+        Schema::dropIfExists('ec_custom_field_product');
         Schema::dropIfExists('ec_custom_field_values');
         Schema::dropIfExists('ec_custom_fields');
     }

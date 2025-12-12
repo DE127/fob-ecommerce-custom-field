@@ -37,6 +37,11 @@ class CustomFieldController extends BaseController
         $form = CustomFieldForm::create()->setRequest($request);
         $form->saveOnlyValidatedData();
 
+        // Sync selected products (empty means all products)
+        if ($model = $form->getModel()) {
+            $model->products()->sync($request->input('product_ids', []));
+        }
+
         return $this
             ->httpResponse()
             ->setPreviousUrl(route('ecommerce-custom-fields.index'))
@@ -56,6 +61,9 @@ class CustomFieldController extends BaseController
         CustomFieldForm::createFromModel($customField)
             ->setRequest($request)
             ->saveOnlyValidatedData();
+
+        // Sync selected products (empty means all products)
+        $customField->products()->sync($request->input('product_ids', []));
 
         return $this
             ->httpResponse()

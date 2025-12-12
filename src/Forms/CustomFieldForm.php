@@ -14,6 +14,7 @@ use Botble\Base\Forms\Fields\RepeaterField;
 use Botble\Base\Forms\Fields\SelectField;
 use Botble\Base\Forms\Fields\TextField;
 use Botble\Base\Forms\FormAbstract;
+use Botble\Ecommerce\Models\Product;
 use FriendsOfBotble\EcommerceCustomField\Enums\CustomFieldType;
 use FriendsOfBotble\EcommerceCustomField\Enums\DisplayLocation;
 use FriendsOfBotble\EcommerceCustomField\Http\Requests\CustomFieldRequest;
@@ -71,6 +72,17 @@ class CustomFieldForm extends FormAbstract
                     ->choices(DisplayLocation::labels())
                     ->required()
                     ->helperText(trans('plugins/fob-ecommerce-custom-field::custom-field.display_location_helper'))
+            )
+            ->add(
+                'product_ids',
+                SelectField::class,
+                SelectFieldOption::make()
+                    ->label(trans('plugins/fob-ecommerce-custom-field::custom-field.apply_to_products'))
+                    ->choices($this->getProductChoices())
+                    ->multiple()
+                    ->searchable()
+                    ->collapsible('display_location', [DisplayLocation::PRODUCT], old('display_location', $this->getModel()->display_location) ?: DisplayLocation::PRODUCT)
+                    ->selected($this->getSelectedProductIds())
             )
             ->add(
                 'options',
@@ -146,5 +158,26 @@ class CustomFieldForm extends FormAbstract
         }
 
         return (string) Arr::get($options, $key, '');
+    }
+
+    protected function getProductChoices(): array
+    {
+        // Limit to a reasonable number to avoid giant selects; admins can search
+        return Product::query()
+            ->select(['id', 'name'])
+            ->orderByDesc('id')
+            ->limit(1000)
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    protected function getSelectedProductIds(): array
+    {
+        $model = $this->getModel();
+        if ($model && $model->exists) {
+            return $model->products()->pluck('ec_products.id')->all();
+        }
+
+        return (array) old('product_ids', []);
     }
 }

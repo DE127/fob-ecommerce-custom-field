@@ -4,9 +4,11 @@ namespace FriendsOfBotble\EcommerceCustomField\Models;
 
 use Botble\Base\Enums\BaseStatusEnum;
 use Botble\Base\Models\BaseModel;
+use Botble\Ecommerce\Models\Product;
 use FriendsOfBotble\EcommerceCustomField\Enums\CustomFieldType;
 use FriendsOfBotble\EcommerceCustomField\Enums\DisplayLocation;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 
@@ -41,6 +43,11 @@ class CustomField extends BaseModel
     public function values(): HasMany
     {
         return $this->hasMany(CustomFieldValue::class, 'custom_field_id');
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'ec_custom_field_product', 'custom_field_id', 'product_id');
     }
 
     protected function formattedOptions(): Attribute
